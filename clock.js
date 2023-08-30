@@ -1,4 +1,7 @@
-const url = 'https://weatherapi-com.p.rapidapi.com/forecast.json?q=72704&days=3';
+let currentZip = '72704';
+let days = '2';
+let clockinterval;
+
 var weatherObject = {};
 const options = {
 	method: 'GET',
@@ -8,17 +11,27 @@ const options = {
 	}
 };
 
+
+updateButton.addEventListener("click", function() {
+    currentZip = document.getElementById("zip").value;
+    clearTempText();
+    clearHourText();
+    clearInterval(clockinterval);
+    checkForcast();
+});
+
 checkForcast();
 async function checkForcast(){
 
     try {
+        const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
         const response = await fetch(url, options);
         weatherObject = await response.text();
         const today = JSON.parse(weatherObject).forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f}});
         const tomorrow = JSON.parse(weatherObject).forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f}});
         weatherObject = today.concat(tomorrow);
         
-        setInterval(updateClockHands, 1000);
+        clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
     } catch (error) {
         console.error(error);
@@ -147,6 +160,21 @@ function SetTempText(){
       }
 }
 
+// Function to clear temperature text
+function clearTempText() {
+    const tempTextElements = hourNumbersGroup.querySelectorAll(".temp-text");
+    tempTextElements.forEach(tempTextElement => {
+        tempTextElement.textContent = "";
+    });
+}
+
+// Function to clear hour text
+function clearHourText() {
+    const hourNumberElements = hourNumbersGroup.querySelectorAll(".hour-number");
+    hourNumberElements.forEach(hourNumberElement => {
+        hourNumberElement.textContent = "";
+    });
+}
 
 function updateClockHands() {
   const now = new Date();

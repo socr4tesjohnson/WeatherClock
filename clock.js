@@ -3,6 +3,7 @@ let days = '2';
 let clockinterval;
 
 var weatherObject = {};
+var weatherArray = [];
 const options = {
 	method: 'GET',
 	headers: {
@@ -27,9 +28,16 @@ async function checkForcast(){
         const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
         const response = await fetch(url, options);
         weatherObject = await response.text();
-        const today = JSON.parse(weatherObject).forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f}});
-        const tomorrow = JSON.parse(weatherObject).forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f}});
-        weatherObject = today.concat(tomorrow);
+
+        weatherObject = JSON.parse(weatherObject)
+
+        const cityName = weatherObject.location.name; // Get the city name from the response
+        document.getElementById("currentZip").textContent = currentZip; // Display the current zip
+        document.getElementById("currentCity").textContent = cityName; // Display the city name
+
+        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f}});
+        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f}});
+        weatherArray = today.concat(tomorrow);
         
         clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
@@ -155,7 +163,10 @@ function SetTempText(){
         tempText.setAttribute("class", "temp-text");
         tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
         let currentHour = getCurrentHour(hour);
-        tempText.textContent = weatherObject.find(x => x.min == currentHour).temp;
+
+        // tempText.textContent = `${weatherArray.find(x => x.min == currentHour).temp} °F`;
+
+        tempText.textContent = weatherArray.find(x => x.min == currentHour).temp;
         hourNumbersGroup.appendChild(tempText);
       }
 }
@@ -189,7 +200,6 @@ function updateClockHands() {
   hourHand.setAttribute("transform", `rotate(${hourAngle})`);
   minuteHand.setAttribute("transform", `rotate(${minuteAngle})`);
   secondHand.setAttribute("transform", `rotate(${secondAngle})`);
-
   
     if(minutes === 0){
         clearTempText();
@@ -199,13 +209,11 @@ function updateClockHands() {
     }
 }
 
-
-
 function updateTemperatureColors() {
     const wedgePaths = clockSVG.querySelectorAll("path");
     wedgePaths.forEach((wedgePath, index) => {
         let currentHour = getCurrentHour(Math.floor(index/5));
-        wedgePath.setAttribute("fill", getColor(weatherObject.find(x => x.min == currentHour).temp));
+        wedgePath.setAttribute("fill", getColor(weatherArray.find(x => x.min == currentHour).temp));
     });
     SetHourText()
     SetTempText()

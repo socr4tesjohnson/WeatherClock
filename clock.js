@@ -12,15 +12,27 @@ const options = {
 	}
 };
 
+// Add an event listener to the ZIP code input field
+const zipInput = document.getElementById("zip");
+zipInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Prevent form submission
+        updateZip();
+    }
+});
 
-updateButton.addEventListener("click", function() {
-    currentZip = document.getElementById("zip").value;
+// Update the 'updateButton' event listener
+updateButton.addEventListener("click", updateZip);
+
+// Define a function to update the ZIP code and fetch the forecast
+function updateZip() {
+    currentZip = zipInput.value;
     clearTempText();
     clearHourText();
-    clearIcons();
     clearInterval(clockinterval);
-    checkForcast();
-});
+    checkForecast();
+}
+
 
 checkForcast();
 async function checkForcast(){

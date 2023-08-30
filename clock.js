@@ -191,9 +191,11 @@ function updateClockHands() {
   secondHand.setAttribute("transform", `rotate(${secondAngle})`);
 
   
-    if(hours === 0 && minutes === 0){
+    if(minutes === 0){
+        clearTempText();
+        clearHourText();
+        clearInterval(clockinterval);
         checkForcast();
-        updateTemperatureColors();
     }
 }
 

@@ -1,0 +1,28 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+#clock {
+  position: relative;
+  transform: rotate(90deg);
+}
+
+.hand {
+  fill: black;
+  stroke: black;
+}
+
+.hour-number {
+  font-size: 18px;
+  font-weight: bold;
+  text-anchor: middle;
+}
+
+.temp-text {
+  font-size: 14px;
+  text-anchor: middle;
+}

@@ -253,3 +253,43 @@ function updateTemperatureColors() {
     SetTempText()
 }
 
+
+// function getCurrentLocation() {
+//     if (navigator.geolocation) {
+//         navigator.geolocation.getCurrentPosition(
+//             function(position) {
+//                 const latitude = position.coords.latitude;
+//                 const longitude = position.coords.longitude;
+
+//                 currentZip = `${longitude},${}`
+
+//                 fetchCityAndZip(latitude, longitude);
+//             },
+//             function(error) {
+//                 console.error("Error getting location:", error);
+//             }
+//         );
+//     } else {
+//         console.error("Geolocation is not supported by this browser.");
+//     }
+// }
+
+// // Add a new function to fetch the city and ZIP code using a geocoding API
+// async function fetchCityAndZip(latitude, longitude) {
+//     try {
+//         const response = await fetch(`https://geocoding.example.com/api?lat=${latitude}&lon=${longitude}`);
+//         const data = await response.json();
+//         if (data.zipcode) {
+//             currentZip = data.zipcode;
+//             document.getElementById("zip").value = currentZip; // Set the ZIP code in the input field
+//         } else {
+//             console.error("ZIP code not found in geocoding data.");
+//         }
+//     } catch (error) {
+//         console.error("Error fetching city and ZIP code:", error);
+//     }
+// }
+
+// window.addEventListener("load", function() {
+//     getCurrentLocation();
+// });

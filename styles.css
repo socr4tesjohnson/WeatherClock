@@ -9,6 +9,7 @@ body {
 #clock {
   position: relative;
   transform: rotate(90deg);
+  z-index: -1;
 }
 
 .hand {

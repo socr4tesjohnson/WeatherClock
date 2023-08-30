@@ -30,7 +30,7 @@ function updateZip() {
     clearTempText();
     clearHourText();
     clearInterval(clockinterval);
-    checkForecast();
+    checkForcast();
 }
 
 

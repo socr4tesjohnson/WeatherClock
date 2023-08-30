@@ -23,7 +23,7 @@ body {
 }
 
 .temp-text {
-  font-size: 14px;
+  font-size: 12px;
   text-anchor: middle;
   color: #007bff; /* Change color for better visibility */
 }

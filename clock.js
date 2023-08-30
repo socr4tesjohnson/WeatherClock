@@ -17,6 +17,7 @@ updateButton.addEventListener("click", function() {
     currentZip = document.getElementById("zip").value;
     clearTempText();
     clearHourText();
+    clearIcons();
     clearInterval(clockinterval);
     checkForcast();
 });
@@ -35,12 +36,13 @@ async function checkForcast(){
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip
         document.getElementById("currentCity").textContent = cityName; // Display the city name
 
-        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f}});
-        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f}});
+        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f, condition: x.condition}});
+        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f, condition: x.condition}});
         weatherArray = today.concat(tomorrow);
         
         clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
+        console.log(weatherObject);
     } catch (error) {
         console.error(error);
     }
@@ -59,8 +61,10 @@ function getCurrentHour(hour){
         return hour;
     }
 
+    if(currentHour > hour){
+        hour += 12;
+    }
     return hour;
-
 }
 
 function getColor(temperature) {
@@ -152,7 +156,7 @@ function SetHourText(){
 
 function SetTempText(){
     for (let hour = 1; hour <= 12; hour++) {
-        const angle = ((hour - 3) / 12) * 360; 
+        const angle = ((hour - 2.5) / 12) * 360; 
         const distFromCenter = 80;
         const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
         const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));
@@ -162,14 +166,43 @@ function SetTempText(){
         tempText.setAttribute("y", textY);
         tempText.setAttribute("class", "temp-text");
         tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
-        let currentHour = getCurrentHour(hour);
+        const currentHour = getCurrentHour(hour);
+        const tempValue = weatherArray.find(x => x.min === currentHour).temp;
+        tempText.innerHTML = `${tempValue}&deg;F`;
+      
+        const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        const iconPositionX = textX - 15; // Adjust as needed
+        const iconPositionY = textY + 40; // Adjust as needed
+    
+        conditionIcon.setAttribute("x", iconPositionX+40); // Adjust position as needed
+        conditionIcon.setAttribute("y", iconPositionY); // Adjust position as needed
+        conditionIcon.setAttribute("class", "condition-icon");
+        conditionIcon.setAttribute("width", 25); // Adjust size as needed
+        conditionIcon.setAttribute("height", 25); // Adjust size as needed
+        conditionIcon.setAttribute("href", 'https:' + weatherArray.find(x => x.min === currentHour).condition.icon);
+        conditionIcon.setAttribute("transform", `rotate(-90 ${iconPositionX + 15} ${iconPositionY + 15})`); // Rotate the icon
 
-        // tempText.textContent = `${weatherArray.find(x => x.min == currentHour).temp} °F`;
-
-        tempText.textContent = weatherArray.find(x => x.min == currentHour).temp;
+        
+        hourNumbersGroup.appendChild(conditionIcon);
         hourNumbersGroup.appendChild(tempText);
-      }
+    }
 }
+
+// Function to clear temperature text
+// Function to clear temperature texts and condition icons
+function clearIcons() {
+    const tempTextElements = hourNumbersGroup.querySelectorAll(".temp-text");
+    const conditionIconElements = hourNumbersGroup.querySelectorAll("image");
+    
+    tempTextElements.forEach(tempTextElement => {
+        tempTextElement.textContent = "";
+    });
+    
+    conditionIconElements.forEach(iconElement => {
+        iconElement.remove();
+    });
+}
+
 
 // Function to clear temperature text
 function clearTempText() {
@@ -204,6 +237,7 @@ function updateClockHands() {
     if(minutes === 0){
         clearTempText();
         clearHourText();
+        clearIcons();
         clearInterval(clockinterval);
         checkForcast();
     }

@@ -4,13 +4,7 @@ let clockinterval;
 
 var weatherObject = {};
 var weatherArray = [];
-const options = {
-	method: 'GET',
-	headers: {
-		'X-RapidAPI-Key': '102e5627d5msh4f0eea098bff292p1c0d6djsn4553209f04a8',
-		'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
-	}
-};
+const PROXY_URL = window.WEATHER_API_PROXY_URL || "";
 
 // Add an event listener to the ZIP code input field
 const zipInput = document.getElementById("zip");
@@ -21,6 +15,7 @@ zipInput.addEventListener("keydown", function(event) {
     }
 });
 
+const updateButton = document.getElementById("updateButton");
 // Update the 'updateButton' event listener
 updateButton.addEventListener("click", updateZip);
 
@@ -38,61 +33,70 @@ checkForcast();
 async function checkForcast(){
 
     try {
-        const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
-        const response = await fetch(url, options);
-        weatherObject = await response.text();
-
-        weatherObject = JSON.parse(weatherObject)
+        if (!PROXY_URL) {
+            showError("API proxy not configured. Set window.WEATHER_API_PROXY_URL in config.js");
+            return;
+        }
+        showError("");
+        showLoading(true);
+        const url = `${PROXY_URL}?q=${encodeURIComponent(currentZip)}&days=${encodeURIComponent(days)}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        weatherObject = await response.json();
 
         const cityName = weatherObject.location.name; // Get the city name from the response
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip
         document.getElementById("currentCity").textContent = cityName; // Display the city name
 
-        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f, condition: x.condition}});
-        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f, condition: x.condition}});
+        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => ({ idx: i, temp: x.temp_f, condition: x.condition }));
+        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => ({ idx: i+24, temp: x.temp_f, condition: x.condition }));
         weatherArray = today.concat(tomorrow);
         
+        clearInterval(clockinterval);
         clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
-        console.log(weatherObject);
     } catch (error) {
         console.error(error);
+        showError("Failed to load forecast. Check ZIP or try again.");
+    } finally {
+        showLoading(false);
     }
 }
 
 const now = new Date();
 const currentHour = now.getHours();
 const clockSVG = document.getElementById("clock");
+const statusEl = document.getElementById("status");
 
-function getCurrentHour(hour){
-    if(currentHour > 12){
-        hour += 12;
-        if(currentHour > hour){
-            hour += 12;
-        }
-        return hour;
-    }
+function showLoading(isLoading) {
+    if (!statusEl) return;
+    statusEl.textContent = isLoading ? "Loading forecast..." : "";
+}
 
-    if(currentHour > hour){
-        hour += 12;
-    }
-    return hour;
+function showError(message) {
+    if (!statusEl) return;
+    statusEl.textContent = message || "";
+}
+
+function getForecastIndex(offsetHours) {
+    const nowHour = new Date().getHours();
+    const index = nowHour + offsetHours;
+    return Math.max(0, Math.min(47, index));
 }
 
 function getColor(temperature) {
-    // Normalize the temperature to a value between 0 and 100
     const normalizedTemp = (temperature - 32) / 68 * 100;
-  
-    // Calculate the hue value based on the normalized temperature
-    const hue = (1 - normalizedTemp / 100) * 240;
-  
-    // Set saturation and lightness values
+    const clamped = Math.max(0, Math.min(100, normalizedTemp));
+    const hue = (1 - clamped / 100) * 240;
     const saturation = 100;
     const lightness = 50;
-  
-    // Return the HSL color string
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-  }
+}
 
 for (let i = 0; i < 60; i++) {
   const startAngle = ((i / 60) * 2 * Math.PI) - (Math.PI / 2);
@@ -177,24 +181,27 @@ function SetTempText(){
         tempText.setAttribute("x", textX);
         tempText.setAttribute("y", textY);
         tempText.setAttribute("class", "temp-text");
-        tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
-        const currentHour = getCurrentHour(hour);
-        const tempValue = weatherArray.find(x => x.min === currentHour).temp;
+        tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`);
+        const offsetHours = hour - 1;
+        const forecastIdx = getForecastIndex(offsetHours);
+        const tempValue = weatherArray[forecastIdx]?.temp ?? "?";
         tempText.innerHTML = `${tempValue}&deg;F`;
       
         const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        const iconPositionX = textX - 15; // Adjust as needed
-        const iconPositionY = textY + 40; // Adjust as needed
+        const iconPositionX = textX - 15;
+        const iconPositionY = textY + 40;
     
-        conditionIcon.setAttribute("x", iconPositionX+40); // Adjust position as needed
-        conditionIcon.setAttribute("y", iconPositionY); // Adjust position as needed
+        conditionIcon.setAttribute("x", iconPositionX+40);
+        conditionIcon.setAttribute("y", iconPositionY);
         conditionIcon.setAttribute("class", "condition-icon");
-        conditionIcon.setAttribute("width", 25); // Adjust size as needed
-        conditionIcon.setAttribute("height", 25); // Adjust size as needed
-        conditionIcon.setAttribute("href", 'https:' + weatherArray.find(x => x.min === currentHour).condition.icon);
-        conditionIcon.setAttribute("transform", `rotate(-90 ${iconPositionX + 15} ${iconPositionY + 15})`); // Rotate the icon
+        conditionIcon.setAttribute("width", 25);
+        conditionIcon.setAttribute("height", 25);
+        const iconHref = weatherArray[forecastIdx]?.condition?.icon ? 'https:' + weatherArray[forecastIdx].condition.icon : '';
+        if (iconHref) {
+            conditionIcon.setAttribute("href", iconHref);
+        }
+        conditionIcon.setAttribute("transform", `rotate(-90 ${iconPositionX + 15} ${iconPositionY + 15})`);
 
-        
         hourNumbersGroup.appendChild(conditionIcon);
         hourNumbersGroup.appendChild(tempText);
     }
@@ -219,16 +226,16 @@ function clearIcons() {
 // Function to clear temperature text
 function clearTempText() {
     const tempTextElements = hourNumbersGroup.querySelectorAll(".temp-text");
-    tempTextElements.forEach(tempTextElement => {
-        tempTextElement.textContent = "";
+    tempTextElements.forEach(el => {
+        el.remove();
     });
 }
 
 // Function to clear hour text
 function clearHourText() {
     const hourNumberElements = hourNumbersGroup.querySelectorAll(".hour-number");
-    hourNumberElements.forEach(hourNumberElement => {
-        hourNumberElement.textContent = "";
+    hourNumberElements.forEach(el => {
+        el.remove();
     });
 }
 
@@ -258,11 +265,13 @@ function updateClockHands() {
 function updateTemperatureColors() {
     const wedgePaths = clockSVG.querySelectorAll("path");
     wedgePaths.forEach((wedgePath, index) => {
-        let currentHour = getCurrentHour(Math.floor(index/5));
-        wedgePath.setAttribute("fill", getColor(weatherArray.find(x => x.min == currentHour).temp));
+        const offsetHours = Math.floor(index / 5);
+        const forecastIdx = getForecastIndex(offsetHours);
+        const temp = weatherArray[forecastIdx]?.temp ?? 60;
+        wedgePath.setAttribute("fill", getColor(temp));
     });
-    SetHourText()
-    SetTempText()
+    SetHourText();
+    SetTempText();
 }
 
 

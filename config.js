@@ -1,0 +1,1 @@
+window.WEATHER_API_PROXY_URL = ""; // e.g., "https://your-proxy.example.com/forecast"

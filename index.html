@@ -2,9 +2,10 @@
 <html>
 <head>
   <title>Colorful Clock with Hands and Hour Numbers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
+  
+  
 </head>
 <body>
 
@@ -13,8 +14,10 @@
       <div id="currentLocation">Current Location: <span id="currentZip">72704</span>, <span id="currentCity">Fayetteville</span></div>
     </div>
     <label for="zip">Zip</label>
-    <input id="zip" class="input-field">
+    <input id="zip" class="input-field" inputmode="numeric" pattern="\d{5}" maxlength="5" aria-describedby="zipHelp" />
     <button id="updateButton">Update Query</button>
+    <div id="zipHelp">Enter a 5-digit US ZIP code.</div>
+    <div id="status" aria-live="polite"></div>
   </div>
   <div id="city"></div> 
 
@@ -24,6 +27,7 @@
 
 
 
+  <script src="config.js"></script>
   <script src="clock.js"></script>
 </body>
 </html>

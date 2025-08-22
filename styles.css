@@ -23,10 +23,26 @@ body {
   text-anchor: middle;
 }
 
-.temp-text {
+.hour-am {
   font-size: 12px;
+  fill: #2E86AB;
+}
+
+.hour-pm {
+  font-size: 12px;
+  fill: #A23B72;
+}
+
+.sunrise-indicator, .sunset-indicator {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.temp-text {
+  font-size: 10px;
   text-anchor: middle;
-  color: #007bff; /* Change color for better visibility */
+  fill: #333;
+  font-weight: bold;
 }
 
 #input-container {

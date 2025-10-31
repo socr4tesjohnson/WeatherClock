@@ -62,7 +62,11 @@ async function checkForcast(){
         updateTemperatureColors();
     } catch (error) {
         console.error(error);
-        showError("Failed to load forecast. Check ZIP or try again.");
+        let errorMsg = "Failed to load forecast. Check ZIP or try again.";
+        if (error && error.message) {
+            errorMsg += ` (${error.message})`;
+        }
+        showError(errorMsg);
     } finally {
         showLoading(false);
     }
@@ -83,6 +87,11 @@ function showError(message) {
     statusEl.textContent = message || "";
 }
 
+/**
+ * Maps an offset in hours from the current time to an index in the 48-hour forecast array.
+ * @param {number} offsetHours - The number of hours from the current hour (can be negative or positive).
+ * @returns {number} The corresponding index in the forecast array, clamped between 0 and 47.
+ */
 function getForecastIndex(offsetHours) {
     const nowHour = new Date().getHours();
     const index = nowHour + offsetHours;

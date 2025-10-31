@@ -4,7 +4,7 @@ exports.handler = async function(event) {
     const q = params.q;
     const days = params.days || "2";
     if (!q) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Missing q" }) };
+      return { statusCode: 400, body: JSON.stringify({ error: "Missing required parameter 'q' (location query)" }) };
     }
     const apiKey = process.env.WEATHERAPI_KEY;
     if (!apiKey) {

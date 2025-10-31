@@ -1,28 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Colorful Clock with Hands and Hour Numbers</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeatherClock - Hourly Forecast at a Glance</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 </head>
 <body>
+  <div class="container">
+    <header>
+      <h1>WeatherClock</h1>
+      <p class="subtitle">12-Hour Weather Forecast</p>
+    </header>
 
-  <div id="input-container">
-    <div id="location-info">
-      <div id="currentLocation">Current Location: <span id="currentZip">72704</span>, <span id="currentCity">Fayetteville</span></div>
+    <div id="input-container">
+      <div id="location-info">
+        <div id="currentLocation">
+          <svg class="location-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <span id="currentCity">Fayetteville</span>, <span id="currentZip">72704</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <input id="zip" class="input-field" type="text" placeholder="Enter ZIP code" aria-label="ZIP code">
+        <button id="updateButton" aria-label="Update location">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Update
+        </button>
+      </div>
     </div>
-    <label for="zip">Zip</label>
-    <input id="zip" class="input-field">
-    <button id="updateButton">Update Query</button>
+
+    <div class="clock-container">
+      <svg id="clock" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+            <feOffset dx="0" dy="2" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <circle cx="150" cy="150" r="140" fill="white" stroke="#e0e0e0" stroke-width="2" filter="url(#shadow)" />
+      </svg>
+    </div>
+
+    <footer>
+      <p class="info-text">Each colored segment shows the temperature for the next hour. Hover over segments for details.</p>
+    </footer>
   </div>
-  <div id="city"></div> 
-
-  <svg id="clock" width="100%" height="100%" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="150" cy="150" r="140" fill="white" stroke="black" stroke-width="2" />
-  </svg>
-
-
 
   <script src="clock.js"></script>
 </body>

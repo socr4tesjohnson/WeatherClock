@@ -1,4 +1,5 @@
-let currentZip = '72704';
+// Load saved location from localStorage, or use default
+let currentZip = localStorage.getItem('weatherclock_location') || '72704';
 let days = '2';
 let clockinterval;
 
@@ -24,9 +25,16 @@ zipInput.addEventListener("keydown", function(event) {
 // Update the 'updateButton' event listener
 updateButton.addEventListener("click", updateZip);
 
+// Initialize the display with saved location
+document.getElementById("currentZip").textContent = currentZip;
+
 // Define a function to update the ZIP code and fetch the forecast
 function updateZip() {
     currentZip = zipInput.value;
+
+    // Save the location to localStorage
+    localStorage.setItem('weatherclock_location', currentZip);
+
     clearTempText();
     clearHourText();
     clearInterval(clockinterval);

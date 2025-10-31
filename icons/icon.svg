@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="clockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#357abd;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#clockGradient)"/>
+
+  <!-- Clock face -->
+  <circle cx="256" cy="256" r="200" fill="white" stroke="#e0e0e0" stroke-width="8"/>
+
+  <!-- Hour markers -->
+  <circle cx="256" cy="96" r="12" fill="#4a90e2"/>
+  <circle cx="416" cy="256" r="12" fill="#4a90e2"/>
+  <circle cx="256" cy="416" r="12" fill="#4a90e2"/>
+  <circle cx="96" cy="256" r="12" fill="#4a90e2"/>
+
+  <!-- Clock hands -->
+  <line x1="256" y1="256" x2="256" y2="140" stroke="#333" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="330" y2="256" stroke="#333" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Center dot -->
+  <circle cx="256" cy="256" r="16" fill="#4a90e2"/>
+
+  <!-- Weather icons (sun and cloud) -->
+  <circle cx="340" cy="180" r="30" fill="#FFD700" opacity="0.8"/>
+  <ellipse cx="350" cy="200" rx="35" ry="25" fill="white" opacity="0.9"/>
+</svg>

@@ -40,23 +40,27 @@ async function checkForcast(){
     try {
         const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
         const response = await fetch(url, options);
-        weatherObject = await response.text();
 
-        weatherObject = JSON.parse(weatherObject)
+        if (!response.ok) {
+            throw new Error(`Weather API error: ${response.status} ${response.statusText}`);
+        }
+
+        weatherObject = await response.json();
 
         const cityName = weatherObject.location.name; // Get the city name from the response
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip
         document.getElementById("currentCity").textContent = cityName; // Display the city name
 
-        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {min: i, temp: x.temp_f, condition: x.condition}});
-        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {min: i+24, temp: x.temp_f, condition: x.condition}});
+        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {hour: i, temp: x.temp_f, condition: x.condition}});
+        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {hour: i+24, temp: x.temp_f, condition: x.condition}});
         weatherArray = today.concat(tomorrow);
-        
+
         clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
         console.log(weatherObject);
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching weather:', error);
+        alert('Failed to fetch weather data. Please check the ZIP code and try again.');
     }
 }
 
@@ -64,19 +68,21 @@ const now = new Date();
 const currentHour = now.getHours();
 const clockSVG = document.getElementById("clock");
 
-function getCurrentHour(hour){
-    if(currentHour > 12){
-        hour += 12;
-        if(currentHour > hour){
-            hour += 12;
-        }
-        return hour;
+// Get the forecast hour offset from current time for a given clock hour position
+function getForecastHour(clockHour) {
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Calculate which hour in the forecast this clock position represents
+    // Clock shows next 12 hours starting from current hour
+    let forecastHour = currentHour + clockHour;
+
+    // Keep within 48-hour forecast range
+    if (forecastHour >= 48) {
+        forecastHour = forecastHour - 48;
     }
 
-    if(currentHour > hour){
-        hour += 12;
-    }
-    return hour;
+    return forecastHour;
 }
 
 function getColor(temperature) {
@@ -94,9 +100,11 @@ function getColor(temperature) {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
-for (let i = 0; i < 60; i++) {
-  const startAngle = ((i / 60) * 2 * Math.PI) - (Math.PI / 2);
-  const endAngle = (((i + 1) / 60) * 2 * Math.PI) - (Math.PI / 2);
+// Create 12 hour wedges for the circular watch face
+// Each wedge represents one hour of weather forecast
+for (let i = 0; i < 12; i++) {
+  const startAngle = ((i / 12) * 2 * Math.PI) - (Math.PI / 2);
+  const endAngle = (((i + 1) / 12) * 2 * Math.PI) - (Math.PI / 2);
 
   const startX = 150 + Math.sin(startAngle) * 140;
   const startY = 150 - Math.cos(startAngle) * 140;
@@ -104,12 +112,14 @@ for (let i = 0; i < 60; i++) {
   const endX = 150 + Math.sin(endAngle) * 140;
   const endY = 150 - Math.cos(endAngle) * 140;
 
-  const color = getColor(60);
+  const color = getColor(60); // Default color, will be updated when weather loads
 
   const wedgePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
   wedgePath.setAttribute("d", `M 150 150 L ${startX} ${startY} A 140 140 0 0 1 ${endX} ${endY} Z`);
   wedgePath.setAttribute("fill", color);
-  wedgePath.setAttribute("stroke", "none");
+  wedgePath.setAttribute("stroke", "white");
+  wedgePath.setAttribute("stroke-width", "2");
+  wedgePath.setAttribute("data-hour", i); // Store which hour this wedge represents
 
   clockSVG.appendChild(wedgePath);
 }
@@ -168,33 +178,42 @@ function SetHourText(){
 
 function SetTempText(){
     for (let hour = 1; hour <= 12; hour++) {
-        const angle = ((hour - 2.5) / 12) * 360; 
+        const angle = ((hour - 2.5) / 12) * 360;
         const distFromCenter = 80;
         const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
         const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));
-      
+
+        // Get the forecast hour for this clock position
+        const forecastHour = getForecastHour(hour);
+        const weatherData = weatherArray.find(x => x.hour === forecastHour);
+
+        // Skip if no weather data available for this hour
+        if (!weatherData) {
+            console.warn(`No weather data for forecast hour ${forecastHour}`);
+            continue;
+        }
+
         const tempText = document.createElementNS("http://www.w3.org/2000/svg", "text");
         tempText.setAttribute("x", textX);
         tempText.setAttribute("y", textY);
         tempText.setAttribute("class", "temp-text");
         tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
-        const currentHour = getCurrentHour(hour);
-        const tempValue = weatherArray.find(x => x.min === currentHour).temp;
-        tempText.innerHTML = `${tempValue}&deg;F`;
-      
+        const tempValue = weatherData.temp;
+        tempText.innerHTML = `${Math.round(tempValue)}&deg;F`;
+
         const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
         const iconPositionX = textX - 15; // Adjust as needed
         const iconPositionY = textY + 40; // Adjust as needed
-    
+
         conditionIcon.setAttribute("x", iconPositionX+40); // Adjust position as needed
         conditionIcon.setAttribute("y", iconPositionY); // Adjust position as needed
         conditionIcon.setAttribute("class", "condition-icon");
         conditionIcon.setAttribute("width", 25); // Adjust size as needed
         conditionIcon.setAttribute("height", 25); // Adjust size as needed
-        conditionIcon.setAttribute("href", 'https:' + weatherArray.find(x => x.min === currentHour).condition.icon);
+        conditionIcon.setAttribute("href", 'https:' + weatherData.condition.icon);
         conditionIcon.setAttribute("transform", `rotate(-90 ${iconPositionX + 15} ${iconPositionY + 15})`); // Rotate the icon
 
-        
+
         hourNumbersGroup.appendChild(conditionIcon);
         hourNumbersGroup.appendChild(tempText);
     }
@@ -257,12 +276,33 @@ function updateClockHands() {
 
 function updateTemperatureColors() {
     const wedgePaths = clockSVG.querySelectorAll("path");
+
     wedgePaths.forEach((wedgePath, index) => {
-        let currentHour = getCurrentHour(Math.floor(index/5));
-        wedgePath.setAttribute("fill", getColor(weatherArray.find(x => x.min == currentHour).temp));
+        // Get the hour this wedge represents (0-11)
+        const clockHour = parseInt(wedgePath.getAttribute("data-hour"));
+
+        // Skip if this isn't a wedge (might be other paths in the SVG)
+        if (isNaN(clockHour)) return;
+
+        // Calculate which forecast hour this represents
+        // For clock position 1, we want 1 hour from now, etc.
+        const forecastHour = getForecastHour(clockHour + 1);
+
+        // Find the weather data for this forecast hour
+        const weatherData = weatherArray.find(x => x.hour === forecastHour);
+
+        if (weatherData) {
+            // Set the wedge color based on the temperature
+            wedgePath.setAttribute("fill", getColor(weatherData.temp));
+        } else {
+            console.warn(`No weather data for wedge ${clockHour}, forecast hour ${forecastHour}`);
+            // Set a neutral color if no data available
+            wedgePath.setAttribute("fill", "#cccccc");
+        }
     });
-    SetHourText()
-    SetTempText()
+
+    SetHourText();
+    SetTempText();
 }
 
 

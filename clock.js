@@ -68,19 +68,20 @@ const now = new Date();
 const currentHour = now.getHours();
 const clockSVG = document.getElementById("clock");
 
-// Get the forecast hour offset from current time for a given clock hour position
-function getForecastHour(clockHour) {
+// Get the forecast hour for a given wedge index (0-11)
+// Wedge 0 is at 12 o'clock and represents the current hour
+// Returns the hour index in weatherArray (0-47)
+function getForecastHourFromWedge(wedgeIndex) {
     const now = new Date();
     const currentHour = now.getHours();
 
-    // Calculate which hour in the forecast this clock position represents
-    // Clock shows next 12 hours starting from current hour
-    let forecastHour = currentHour + clockHour;
+    // Each wedge represents one hour in the next 12 hours
+    // wedgeIndex 0 = current hour, wedgeIndex 1 = current hour + 1, etc.
+    let forecastHour = currentHour + wedgeIndex;
 
-    // Keep within 48-hour forecast range
-    if (forecastHour >= 48) {
-        forecastHour = forecastHour - 48;
-    }
+    // weatherArray has hours 0-23 for today, 24-47 for tomorrow
+    // If forecastHour >= 24, it wraps to tomorrow's data
+    // which is already mapped correctly (hour 24 = midnight tomorrow)
 
     return forecastHour;
 }
@@ -177,19 +178,22 @@ function SetHourText(){
 }
 
 function SetTempText(){
-    for (let hour = 1; hour <= 12; hour++) {
-        const angle = ((hour - 2.5) / 12) * 360;
+    for (let i = 0; i < 12; i++) {
+        // Calculate angle for this wedge position
+        // We need to position text in the center of each wedge
+        // Wedge i spans from (i/12) to ((i+1)/12) of the circle
+        const centerAngle = ((i + 0.5) / 12) * 360 - 90; // -90 to start at top
         const distFromCenter = 80;
-        const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
-        const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));
+        const textX = distFromCenter * Math.cos(centerAngle * (Math.PI / 180));
+        const textY = distFromCenter * Math.sin(centerAngle * (Math.PI / 180));
 
-        // Get the forecast hour for this clock position
-        const forecastHour = getForecastHour(hour);
+        // Get the forecast hour for this wedge
+        const forecastHour = getForecastHourFromWedge(i);
         const weatherData = weatherArray.find(x => x.hour === forecastHour);
 
         // Skip if no weather data available for this hour
         if (!weatherData) {
-            console.warn(`No weather data for forecast hour ${forecastHour}`);
+            console.warn(`SetTempText: No weather data for wedge ${i}, forecast hour ${forecastHour}`);
             continue;
         }
 
@@ -284,12 +288,8 @@ function updateTemperatureColors() {
         // Skip if this isn't a wedge (might be other paths in the SVG)
         if (isNaN(wedgeIndex)) return;
 
-        // Wedges are indexed 0-11 where 0 is at 12 o'clock position
-        // Convert to clock hour (1-12) where 12 is at 12 o'clock
-        const clockHour = wedgeIndex === 0 ? 12 : wedgeIndex;
-
-        // Calculate which forecast hour this represents
-        const forecastHour = getForecastHour(clockHour);
+        // Get the forecast hour for this wedge position
+        const forecastHour = getForecastHourFromWedge(wedgeIndex);
 
         // Find the weather data for this forecast hour
         const weatherData = weatherArray.find(x => x.hour === forecastHour);
@@ -297,8 +297,10 @@ function updateTemperatureColors() {
         if (weatherData) {
             // Set the wedge color based on the temperature
             wedgePath.setAttribute("fill", getColor(weatherData.temp));
+            console.log(`Wedge ${wedgeIndex}: forecast hour ${forecastHour}, temp ${weatherData.temp}°F`);
         } else {
-            console.warn(`No weather data for wedge ${wedgeIndex}, clock hour ${clockHour}, forecast hour ${forecastHour}`);
+            console.warn(`No weather data for wedge ${wedgeIndex}, forecast hour ${forecastHour}`);
+            console.warn(`Available hours:`, weatherArray.map(w => w.hour));
             // Set a neutral color if no data available
             wedgePath.setAttribute("fill", "#cccccc");
         }

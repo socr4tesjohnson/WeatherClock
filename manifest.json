@@ -38,13 +38,15 @@
       "src": "screenshots/screenshot-mobile.png",
       "sizes": "390x844",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "WeatherClock mobile interface showing 12-hour weather forecast on an intuitive clock display"
     },
     {
       "src": "screenshots/screenshot-desktop.png",
       "sizes": "1920x1080",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "WeatherClock desktop interface with weather forecast clock and location controls"
     }
   ]
 }

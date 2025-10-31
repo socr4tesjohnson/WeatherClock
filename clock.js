@@ -113,11 +113,18 @@ function getForecastHourFromWedge(wedgeIndex) {
 }
 
 function getColor(temperature) {
+    // Temperature range: 0°F (extreme cold) to 110°F (extreme hot)
     // Normalize the temperature to a value between 0 and 100
-    const normalizedTemp = (temperature - 32) / 68 * 100;
+    const minTemp = 0;
+    const maxTemp = 110;
+    const normalizedTemp = ((temperature - minTemp) / (maxTemp - minTemp)) * 100;
+  
+    // Clamp normalized temperature to prevent invalid hues
+    const clampedTemp = Math.max(0, Math.min(100, normalizedTemp));
   
     // Calculate the hue value based on the normalized temperature
-    const hue = (1 - normalizedTemp / 100) * 240;
+    // 0°F (cold) → hue 240 (blue), 110°F (hot) → hue 0 (red)
+    const hue = (1 - clampedTemp / 100) * 240;
   
     // Set saturation and lightness values
     const saturation = 100;

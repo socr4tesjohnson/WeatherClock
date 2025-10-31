@@ -14,14 +14,24 @@
     
     <script>
         function getColor(temperature) {
-            const normalizedTemp = (temperature - 32) / 68 * 100;
-            const hue = (1 - normalizedTemp / 100) * 240;
+            // Temperature range: 0°F (extreme cold) to 110°F (extreme hot)
+            const minTemp = 0;
+            const maxTemp = 110;
+            const normalizedTemp = ((temperature - minTemp) / (maxTemp - minTemp)) * 100;
+            
+            // Clamp normalized temperature to prevent invalid hues
+            const clampedTemp = Math.max(0, Math.min(100, normalizedTemp));
+            
+            // Calculate the hue value based on the normalized temperature
+            // 0°F (cold) → hue 240 (blue), 110°F (hot) → hue 0 (red)
+            const hue = (1 - clampedTemp / 100) * 240;
+            
             const saturation = 100;
             const lightness = 50;
             return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         }
         
-        const temps = [32, 40, 50, 60, 70, 80, 90, 100];
+        const temps = [0, 10, 20, 32, 50, 60, 70, 85, 100, 110];
         const testsDiv = document.getElementById('tests');
         
         temps.forEach(temp => {

@@ -7,7 +7,7 @@ var weatherArray = [];
 const options = {
 	method: 'GET',
 	headers: {
-		'X-RapidAPI-Key': '102e5627d5msh4f0eea098bff292p1c0d6djsn4553209f04a8',
+		'X-RapidAPI-Key': '1c8bb6bddfmsh138a2f4e73eec4cp159708jsncd7e288c1033',
 		'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
 	}
 };

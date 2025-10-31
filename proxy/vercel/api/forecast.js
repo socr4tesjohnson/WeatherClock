@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     const { q, days = "2" } = req.query;
     if (!q) {
-      return res.status(400).json({ error: "Missing q" });
+      return res.status(400).json({ error: "Missing required parameter 'q' (location query)" });
     }
     const apiKey = process.env.WEATHERAPI_KEY;
     if (!apiKey) {
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "application/json");
     return res.status(200).send(text);
   } catch (e) {
-    return res.status(500).json({ error: "Proxy error" });
+    console.error("Error in /api/forecast handler:", e);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

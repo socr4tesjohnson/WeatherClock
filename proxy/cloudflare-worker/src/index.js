@@ -5,7 +5,7 @@ export default {
       const q = url.searchParams.get("q");
       const days = url.searchParams.get("days") || "2";
       if (!q) {
-        return new Response(JSON.stringify({ error: "Missing q" }), { status: 400 });
+        return new Response(JSON.stringify({ error: "Missing required parameter 'q' (location query)" }), { status: 400 });
       }
       const apiKey = env.WEATHERAPI_KEY;
       if (!apiKey) {

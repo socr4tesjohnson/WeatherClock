@@ -1,4 +1,4 @@
-const CACHE_NAME = 'weatherclock-v1';
+const CACHE_NAME = 'weatherclock-v2';
 const urlsToCache = [
   '/WeatherClock/',
   '/WeatherClock/index.html',

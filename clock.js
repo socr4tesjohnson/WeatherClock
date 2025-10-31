@@ -189,7 +189,6 @@ function SetHourText(){
         hourNumber.setAttribute("x", textX);
         hourNumber.setAttribute("y", textY);
         hourNumber.setAttribute("class", "hour-number");
-        hourNumber.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
         hourNumber.textContent = hour.toString();
         hourNumbersGroup.appendChild(hourNumber);
       }
@@ -219,7 +218,6 @@ function SetTempText(){
         tempText.setAttribute("x", textX);
         tempText.setAttribute("y", textY);
         tempText.setAttribute("class", "temp-text");
-        tempText.setAttribute("transform", `rotate(-90 ${textX} ${textY})`); // Rotate the number back to upright
         const tempValue = weatherData.temp;
         tempText.innerHTML = `${Math.round(tempValue)}&deg;F`;
 
@@ -233,7 +231,6 @@ function SetTempText(){
         conditionIcon.setAttribute("width", 25); // Adjust size as needed
         conditionIcon.setAttribute("height", 25); // Adjust size as needed
         conditionIcon.setAttribute("href", 'https:' + weatherData.condition.icon);
-        conditionIcon.setAttribute("transform", `rotate(-90 ${iconPositionX + 15} ${iconPositionY + 15})`); // Rotate the icon
 
 
         hourNumbersGroup.appendChild(conditionIcon);

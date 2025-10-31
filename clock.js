@@ -293,7 +293,7 @@ clockSVG.appendChild(hourNumbersGroup);
 
 function SetHourText(){
     for (let hour = 1; hour <= 12; hour++) {
-        const angle = ((hour) / 12) * 360;
+        const angle = ((hour % 12) / 12) * 360;
         const distFromCenter = 120;
         const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
         const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));

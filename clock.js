@@ -185,10 +185,17 @@ function SetHourText(){
         const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
         const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));
 
+        // Create background circle with white border
+        const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        bgCircle.setAttribute("cx", textX);
+        bgCircle.setAttribute("cy", textY);
+        bgCircle.setAttribute("r", 16);
+        bgCircle.setAttribute("class", "hour-number-bg");
+        hourNumbersGroup.appendChild(bgCircle);
+
         const hourNumber = document.createElementNS("http://www.w3.org/2000/svg", "text");
         hourNumber.setAttribute("x", textX);
         hourNumber.setAttribute("y", textY);
-        hourNumber.setAttribute("transform", `rotate(-90 ${textX} ${textY})`);
         hourNumber.setAttribute("class", "hour-number");
         hourNumber.textContent = hour.toString();
         hourNumbersGroup.appendChild(hourNumber);
@@ -201,9 +208,9 @@ function SetTempText(){
         // We need to position text in the center of each wedge
         // Wedge i spans from (i/12) to ((i+1)/12) of the circle
         const centerAngle = ((i + 0.5) / 12) * 360 - 90; // -90 to start at top
-        const distFromCenter = 80;
-        const textX = distFromCenter * Math.cos(centerAngle * (Math.PI / 180));
-        const textY = distFromCenter * Math.sin(centerAngle * (Math.PI / 180));
+        const tempDistFromCenter = 70;
+        const textX = tempDistFromCenter * Math.cos(centerAngle * (Math.PI / 180));
+        const textY = tempDistFromCenter * Math.sin(centerAngle * (Math.PI / 180));
 
         // Get the forecast hour for this wedge
         const forecastHour = getForecastHourFromWedge(i);
@@ -223,16 +230,17 @@ function SetTempText(){
         tempText.innerHTML = `${Math.round(tempValue)}&deg;F`;
 
         // Position weather icon radially between temp text and hour numbers
-        const iconDistFromCenter = 100;
+        const iconDistFromCenter = 95;
+        const iconSize = 28;
         const iconX = iconDistFromCenter * Math.cos(centerAngle * (Math.PI / 180));
         const iconY = iconDistFromCenter * Math.sin(centerAngle * (Math.PI / 180));
 
         const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        conditionIcon.setAttribute("x", iconX - 12.5); // Center the 25px icon
-        conditionIcon.setAttribute("y", iconY - 12.5); // Center the 25px icon
+        conditionIcon.setAttribute("x", iconX - iconSize/2); // Center the icon
+        conditionIcon.setAttribute("y", iconY - iconSize/2); // Center the icon
         conditionIcon.setAttribute("class", "condition-icon");
-        conditionIcon.setAttribute("width", 25);
-        conditionIcon.setAttribute("height", 25);
+        conditionIcon.setAttribute("width", iconSize);
+        conditionIcon.setAttribute("height", iconSize);
         conditionIcon.setAttribute("href", 'https:' + weatherData.condition.icon);
 
 
@@ -273,6 +281,8 @@ function clearHourText() {
     });
 }
 
+let lastSecondAngle = -90;
+
 function updateClockHands() {
   const now = new Date();
   const hours = now.getHours() % 12;
@@ -283,10 +293,26 @@ function updateClockHands() {
   const minuteAngle = ((minutes + seconds / 60) / 60) * 360 - 90;
   const secondAngle = (seconds / 60) * 360 - 90;
 
+  // Detect when second hand needs to jump back (from 354 to -90 degrees)
+  if (lastSecondAngle > 300 && secondAngle < 0) {
+    // Temporarily disable transition for the jump
+    secondHand.style.transition = 'none';
+    secondHand.setAttribute("transform", `rotate(${secondAngle})`);
+    // Force a reflow to ensure the transition: none takes effect
+    secondHand.getBoundingClientRect();
+    // Re-enable transition
+    setTimeout(() => {
+      secondHand.style.transition = '';
+    }, 50);
+  } else {
+    secondHand.setAttribute("transform", `rotate(${secondAngle})`);
+  }
+
+  lastSecondAngle = secondAngle;
+
   hourHand.setAttribute("transform", `rotate(${hourAngle})`);
   minuteHand.setAttribute("transform", `rotate(${minuteAngle})`);
-  secondHand.setAttribute("transform", `rotate(${secondAngle})`);
-  
+
     if(minutes === 0){
         clearTempText();
         clearHourText();

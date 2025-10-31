@@ -11,11 +11,14 @@ https://socr4tesjohnson.github.io/WeatherClock/
 - 12-hour hourly weather forecast
 - Temperature-based color coding
 - ZIP code-based location search
+- **Multiple Saved Locations** - Save and switch between multiple locations
+- **Swipe Navigation** - Swipe left/right to navigate between saved locations (mobile)
+- **Keyboard Navigation** - Use arrow keys to navigate (desktop)
 - Interactive clock visualization
 - Responsive design
 - **Progressive Web App (PWA)** - Install on your device!
 - **Offline Support** - Works without internet (after first load)
-- **Persistent Location** - Your saved location is remembered
+- **Persistent Locations** - All saved locations are remembered across sessions
 
 ## Deployment
 
@@ -61,9 +64,37 @@ WeatherClock is a Progressive Web App that you can install on your device!
 ### PWA Benefits
 
 - **Works Offline**: After the first visit, the app works without internet
-- **Saves Your Location**: Your ZIP code is automatically saved and restored
+- **Saves Your Locations**: All your saved locations are automatically saved and restored
 - **Fast Loading**: Cached assets load instantly
 - **App-like Experience**: Runs in fullscreen mode without browser UI
+
+## Using Multiple Locations
+
+WeatherClock now supports saving multiple locations and easily switching between them:
+
+### Saving Locations
+
+1. Enter a ZIP code in the input field
+2. Click "Update" to load weather for that location
+3. Click the green "Save" button to add it to your saved locations
+4. The location will appear in your "Saved Locations" list
+
+### Navigating Between Locations
+
+You can switch between your saved locations in several ways:
+
+- **Click**: Click any location in the "Saved Locations" list
+- **Navigation Buttons**: Use the ◀ ▶ arrow buttons (shown when you have multiple locations)
+- **Swipe** (Mobile/Touch): Swipe left or right on the clock face
+- **Keyboard** (Desktop): Press the ← or → arrow keys
+
+The location counter (e.g., "1 / 3") shows which location you're viewing and how many you have saved.
+
+### Managing Locations
+
+- **Delete**: Click the × button next to any saved location to remove it
+- **Minimum**: You must have at least one saved location
+- **Persistence**: All locations are saved in your browser and restored when you return
 
 ## Local Development
 

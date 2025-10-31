@@ -7,7 +7,7 @@ var weatherArray = [];
 const options = {
 	method: 'GET',
 	headers: {
-		'X-RapidAPI-Key': '102e5627d5msh4f0eea098bff292p1c0d6djsn4553209f04a8',
+		'X-RapidAPI-Key': '1c8bb6bddfmsh138a2f4e73eec4cp159708jsncd7e288c1033',
 		'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
 	}
 };
@@ -39,13 +39,23 @@ async function checkForcast(){
 
     try {
         const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
+        console.log('Fetching weather data from:', url);
+        console.log('API Key (first 10 chars):', options.headers['X-RapidAPI-Key'].substring(0, 10));
+
         const response = await fetch(url, options);
 
+        console.log('Response status:', response.status, response.statusText);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
         if (!response.ok) {
-            throw new Error(`Weather API error: ${response.status} ${response.statusText}`);
+            // Try to get more detailed error information
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`Weather API error: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         weatherObject = await response.json();
+        console.log('Weather data received:', weatherObject);
 
         const cityName = weatherObject.location.name; // Get the city name from the response
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip
@@ -57,10 +67,18 @@ async function checkForcast(){
 
         clockinterval = setInterval(updateClockHands, 1000);
         updateTemperatureColors();
-        console.log(weatherObject);
+        console.log('Weather array populated with', weatherArray.length, 'hours of data');
     } catch (error) {
         console.error('Error fetching weather:', error);
-        alert('Failed to fetch weather data. Please check the ZIP code and try again.');
+        console.error('Error stack:', error.stack);
+
+        // Display error on the page
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #ff4444; color: white; padding: 15px; border-radius: 5px; z-index: 1000; max-width: 80%;';
+        errorDiv.innerHTML = `<strong>API Error:</strong> ${error.message}<br><small>Check browser console for details</small>`;
+        document.body.appendChild(errorDiv);
+
+        alert('Failed to fetch weather data. Error: ' + error.message + '\n\nThe API key may be expired or invalid. Check the browser console for details.');
     }
 }
 

@@ -5,6 +5,10 @@ let clockinterval;
 
 var weatherObject = {};
 var weatherArray = [];
+
+// Cache keys for localStorage
+const CACHE_KEY_PREFIX = 'weatherclock_cache_';
+const CACHE_TIMESTAMP_KEY = 'weatherclock_cache_timestamp';
 const options = {
 	method: 'GET',
 	headers: {
@@ -28,6 +32,75 @@ updateButton.addEventListener("click", updateZip);
 // Initialize the display with saved location
 document.getElementById("currentZip").textContent = currentZip;
 
+// Helper function to get cached weather data for a location
+function getCachedWeatherData(zip) {
+    const cacheKey = CACHE_KEY_PREFIX + zip;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    
+    if (!cachedData || !cachedTimestamp) {
+        return null;
+    }
+    
+    try {
+        const weatherData = JSON.parse(cachedData);
+        const timestamp = parseInt(cachedTimestamp);
+        return { data: weatherData, timestamp: timestamp };
+    } catch (e) {
+        console.error('Error parsing cached weather data:', e);
+        return null;
+    }
+}
+
+// Helper function to save weather data to cache
+function saveCachedWeatherData(zip, weatherObject) {
+    const cacheKey = CACHE_KEY_PREFIX + zip;
+    const timestamp = Date.now();
+    
+    try {
+        localStorage.setItem(cacheKey, JSON.stringify(weatherObject));
+        localStorage.setItem(CACHE_TIMESTAMP_KEY, timestamp.toString());
+    } catch (e) {
+        console.error('Error saving weather data to cache:', e);
+    }
+}
+
+// Helper function to check if cached data covers the next 12 hours
+function isCacheValid(cachedWeatherData) {
+    if (!cachedWeatherData) {
+        return false;
+    }
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // We need data for the next 12 hours from the current hour
+    const requiredHours = [];
+    for (let i = 0; i < 12; i++) {
+        requiredHours.push(currentHour + i);
+    }
+    
+    // Build the weather array from cached data the same way we do from API
+    const today = cachedWeatherData.data.forecast.forecastday[0].hour.map((x, i) => {
+        return { hour: i, temp: x.temp_f, condition: x.condition };
+    });
+    const tomorrow = cachedWeatherData.data.forecast.forecastday[1].hour.map((x, i) => {
+        return { hour: i + 24, temp: x.temp_f, condition: x.condition };
+    });
+    const cachedArray = today.concat(tomorrow);
+    
+    // Check if all required hours exist in the cached data
+    for (let reqHour of requiredHours) {
+        const found = cachedArray.find(x => x.hour === reqHour);
+        if (!found) {
+            console.log(`Cache missing hour ${reqHour}`);
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // Define a function to update the ZIP code and fetch the forecast
 function updateZip() {
     currentZip = zipInput.value;
@@ -44,6 +117,28 @@ function updateZip() {
 
 checkForcast();
 async function checkForcast(){
+    // Check if we have valid cached data for this location
+    const cachedWeather = getCachedWeatherData(currentZip);
+    
+    if (cachedWeather && isCacheValid(cachedWeather)) {
+        console.log('Using cached weather data for', currentZip);
+        weatherObject = cachedWeather.data;
+        
+        const cityName = weatherObject.location.name;
+        document.getElementById("currentZip").textContent = currentZip;
+        document.getElementById("currentCity").textContent = cityName;
+
+        const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {hour: i, temp: x.temp_f, condition: x.condition}});
+        const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {hour: i+24, temp: x.temp_f, condition: x.condition}});
+        weatherArray = today.concat(tomorrow);
+
+        clockinterval = setInterval(updateClockHands, 1000);
+        updateTemperatureColors();
+        console.log('Weather array populated from cache with', weatherArray.length, 'hours of data');
+        return;
+    }
+
+    console.log('Fetching fresh weather data for', currentZip);
 
     try {
         const url = `https://weatherapi-com.p.rapidapi.com/forecast.json?q=${currentZip}&days=${days}`;
@@ -64,6 +159,9 @@ async function checkForcast(){
 
         weatherObject = await response.json();
         console.log('Weather data received:', weatherObject);
+
+        // Save the fresh data to cache
+        saveCachedWeatherData(currentZip, weatherObject);
 
         const cityName = weatherObject.location.name; // Get the city name from the response
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip

@@ -279,14 +279,17 @@ function updateTemperatureColors() {
 
     wedgePaths.forEach((wedgePath, index) => {
         // Get the hour this wedge represents (0-11)
-        const clockHour = parseInt(wedgePath.getAttribute("data-hour"));
+        const wedgeIndex = parseInt(wedgePath.getAttribute("data-hour"));
 
         // Skip if this isn't a wedge (might be other paths in the SVG)
-        if (isNaN(clockHour)) return;
+        if (isNaN(wedgeIndex)) return;
+
+        // Wedges are indexed 0-11 where 0 is at 12 o'clock position
+        // Convert to clock hour (1-12) where 12 is at 12 o'clock
+        const clockHour = wedgeIndex === 0 ? 12 : wedgeIndex;
 
         // Calculate which forecast hour this represents
-        // For clock position 1, we want 1 hour from now, etc.
-        const forecastHour = getForecastHour(clockHour + 1);
+        const forecastHour = getForecastHour(clockHour);
 
         // Find the weather data for this forecast hour
         const weatherData = weatherArray.find(x => x.hour === forecastHour);
@@ -295,7 +298,7 @@ function updateTemperatureColors() {
             // Set the wedge color based on the temperature
             wedgePath.setAttribute("fill", getColor(weatherData.temp));
         } else {
-            console.warn(`No weather data for wedge ${clockHour}, forecast hour ${forecastHour}`);
+            console.warn(`No weather data for wedge ${wedgeIndex}, clock hour ${clockHour}, forecast hour ${forecastHour}`);
             // Set a neutral color if no data available
             wedgePath.setAttribute("fill", "#cccccc");
         }

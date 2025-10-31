@@ -144,7 +144,7 @@ for (let i = 0; i < 12; i++) {
 }
 
 const handsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-handsGroup.setAttribute("transform", "translate(150, 150)");
+handsGroup.setAttribute("transform", "translate(150, 150) rotate(90)");
 clockSVG.appendChild(handsGroup);
 
 const hourHand = document.createElementNS("http://www.w3.org/2000/svg", "line");

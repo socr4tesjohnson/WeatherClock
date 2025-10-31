@@ -74,9 +74,9 @@ WeatherClock is a Progressive Web App (PWA) that displays a 12-hour weather fore
 ## Security and Privacy
 
 ### API Keys
-- **IMPORTANT:** The current API key in clock.js is exposed and should ideally be moved to a backend service
+- **NOTE:** The current API key in clock.js is exposed in the client code (a known limitation of this static site architecture documented here for awareness)
 - Never commit new API keys or secrets to the repository
-- For future improvements, consider using environment variables or a backend proxy
+- This is intentionally a static site with no backend - if additional security is needed, consider using a serverless function or backend proxy
 
 ### Data Handling
 - Only store non-sensitive user preferences (ZIP code) in localStorage
@@ -94,7 +94,10 @@ WeatherClock is a Progressive Web App (PWA) that displays a 12-hour weather fore
 - Test responsive design on various screen sizes
 
 ### Local Development
-- Use a local server for PWA features (`python3 -m http.server 8000` or `http-server`)
+- Use a local server for PWA features:
+  - Python (no installation needed): `python3 -m http.server 8000`
+  - VS Code Live Server extension (recommended for development)
+  - Node.js http-server (requires npm): `npx http-server -p 8000`
 - Test service worker changes in incognito/private mode or clear cache between tests
 - Use browser DevTools Application tab to inspect PWA status, service workers, and cache
 
@@ -118,11 +121,11 @@ WeatherClock is a Progressive Web App (PWA) that displays a 12-hour weather fore
 
 ### Weather API Calls
 ```javascript
-// Use the existing pattern with RapidAPI headers
+// Use the existing pattern with RapidAPI headers (see clock.js for current implementation)
 const options = {
   method: 'GET',
   headers: {
-    'X-RapidAPI-Key': '...',
+    'X-RapidAPI-Key': '<key from existing clock.js>',
     'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
   }
 };

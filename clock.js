@@ -1,5 +1,9 @@
-// Load saved location from localStorage, or use default
-let currentZip = localStorage.getItem('weatherclock_location') || '72704';
+// Load saved locations from localStorage, or use default
+let savedLocations = JSON.parse(localStorage.getItem('weatherclock_locations')) || [
+    { zip: '72704', city: 'Fayetteville' }
+];
+let currentLocationIndex = parseInt(localStorage.getItem('weatherclock_current_index')) || 0;
+let currentZip = savedLocations[currentLocationIndex].zip;
 let days = '2';
 let clockinterval;
 
@@ -28,6 +32,101 @@ zipInput.addEventListener("keydown", function(event) {
 
 // Update the 'updateButton' event listener
 updateButton.addEventListener("click", updateZip);
+
+// Add save button listener
+const saveButton = document.getElementById("saveButton");
+saveButton.addEventListener("click", saveCurrentLocation);
+
+// Add navigation button listeners
+document.getElementById('prevLocationBtn').addEventListener('click', previousLocation);
+document.getElementById('nextLocationBtn').addEventListener('click', nextLocation);
+
+// Function to update the location list UI
+function updateLocationList() {
+    const locationListContainer = document.getElementById('savedLocationsList');
+    if (!locationListContainer) return;
+    
+    locationListContainer.innerHTML = '';
+    
+    savedLocations.forEach((location, index) => {
+        const locationItem = document.createElement('div');
+        locationItem.className = 'location-item' + (index === currentLocationIndex ? ' active' : '');
+        
+        const locationText = document.createElement('span');
+        locationText.textContent = `${location.city}, ${location.zip}`;
+        locationText.className = 'location-text';
+        locationText.onclick = () => navigateToLocation(index);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-location-btn';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`Delete ${location.city}, ${location.zip}?`)) {
+                deleteLocation(index);
+            }
+        };
+        
+        locationItem.appendChild(locationText);
+        if (savedLocations.length > 1) {
+            locationItem.appendChild(deleteBtn);
+        }
+        
+        locationListContainer.appendChild(locationItem);
+    });
+}
+
+// Function to update navigation buttons visibility
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevLocationBtn');
+    const nextBtn = document.getElementById('nextLocationBtn');
+    const locationCounter = document.getElementById('locationCounter');
+    
+    if (prevBtn && nextBtn && locationCounter) {
+        const showNavigation = savedLocations.length > 1;
+        prevBtn.style.display = showNavigation ? 'flex' : 'none';
+        nextBtn.style.display = showNavigation ? 'flex' : 'none';
+        locationCounter.textContent = `${currentLocationIndex + 1} / ${savedLocations.length}`;
+    }
+}
+
+// Touch/Swipe handling
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+            // Swiped left - next location
+            nextLocation();
+        } else {
+            // Swiped right - previous location
+            previousLocation();
+        }
+    }
+}
+
+const clockContainer = document.querySelector('.clock-container');
+clockContainer.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+clockContainer.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        previousLocation();
+    } else if (e.key === 'ArrowRight') {
+        nextLocation();
+    }
+});
 
 // Initialize the display with saved location
 document.getElementById("currentZip").textContent = currentZip;
@@ -105,13 +204,92 @@ function isCacheValid(cachedWeatherData) {
 function updateZip() {
     currentZip = zipInput.value;
 
-    // Save the location to localStorage
-    localStorage.setItem('weatherclock_location', currentZip);
-
     clearTempText();
     clearHourText();
     clearInterval(clockinterval);
     checkForcast();
+}
+
+// Function to save current location to saved list
+function saveCurrentLocation() {
+    const cityName = weatherObject.location?.name || 'Unknown';
+    
+    // Check if location already exists
+    const existingIndex = savedLocations.findIndex(loc => loc.zip === currentZip);
+    if (existingIndex === -1) {
+        // Add new location
+        savedLocations.push({ zip: currentZip, city: cityName });
+        currentLocationIndex = savedLocations.length - 1;
+    } else {
+        // Update existing location
+        savedLocations[existingIndex] = { zip: currentZip, city: cityName };
+        currentLocationIndex = existingIndex;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('weatherclock_locations', JSON.stringify(savedLocations));
+    localStorage.setItem('weatherclock_current_index', currentLocationIndex.toString());
+    
+    updateLocationList();
+    updateNavigationButtons();
+}
+
+// Function to delete a saved location
+function deleteLocation(index) {
+    if (savedLocations.length <= 1) {
+        alert('You must have at least one saved location.');
+        return;
+    }
+    
+    savedLocations.splice(index, 1);
+    
+    // Adjust current index if needed
+    if (currentLocationIndex >= savedLocations.length) {
+        currentLocationIndex = savedLocations.length - 1;
+    } else if (currentLocationIndex > index) {
+        currentLocationIndex--;
+    }
+    
+    localStorage.setItem('weatherclock_locations', JSON.stringify(savedLocations));
+    localStorage.setItem('weatherclock_current_index', currentLocationIndex.toString());
+    
+    // Load the adjusted current location
+    currentZip = savedLocations[currentLocationIndex].zip;
+    clearTempText();
+    clearHourText();
+    clearInterval(clockinterval);
+    checkForcast();
+    
+    updateLocationList();
+    updateNavigationButtons();
+}
+
+// Function to navigate to a specific location
+function navigateToLocation(index) {
+    if (index < 0 || index >= savedLocations.length) return;
+    
+    currentLocationIndex = index;
+    currentZip = savedLocations[index].zip;
+    localStorage.setItem('weatherclock_current_index', currentLocationIndex.toString());
+    
+    clearTempText();
+    clearHourText();
+    clearInterval(clockinterval);
+    checkForcast();
+    
+    updateNavigationButtons();
+}
+
+// Function to navigate to next location
+function nextLocation() {
+    const nextIndex = (currentLocationIndex + 1) % savedLocations.length;
+    navigateToLocation(nextIndex);
+}
+
+// Function to navigate to previous location
+function previousLocation() {
+    const prevIndex = (currentLocationIndex - 1 + savedLocations.length) % savedLocations.length;
+    navigateToLocation(prevIndex);
 }
 
 
@@ -166,6 +344,11 @@ async function checkForcast(){
         const cityName = weatherObject.location.name; // Get the city name from the response
         document.getElementById("currentZip").textContent = currentZip; // Display the current zip
         document.getElementById("currentCity").textContent = cityName; // Display the city name
+        
+        // Update the saved location with the actual city name
+        savedLocations[currentLocationIndex] = { zip: currentZip, city: cityName };
+        localStorage.setItem('weatherclock_locations', JSON.stringify(savedLocations));
+        updateLocationList();
 
         const today = weatherObject.forecast.forecastday[0].hour.map((x,i) => {return {hour: i, temp: x.temp_f, condition: x.condition}});
         const tomorrow = weatherObject.forecast.forecastday[1].hour.map((x,i) => {return {hour: i+24, temp: x.temp_f, condition: x.condition}});
@@ -507,3 +690,9 @@ function updateTemperatureColors() {
 // window.addEventListener("load", function() {
 //     getCurrentLocation();
 // });
+
+// Initialize UI on load
+window.addEventListener("load", function() {
+    updateLocationList();
+    updateNavigationButtons();
+});

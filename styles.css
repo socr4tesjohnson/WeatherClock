@@ -70,6 +70,129 @@ h1 {
   font-size: 1rem;
   color: #495057;
   font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.location-counter {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-left: 8px;
+}
+
+#navigation-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #495057;
+}
+
+.nav-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.saved-locations {
+  margin-top: 16px;
+  border-top: 1px solid #dee2e6;
+  padding-top: 16px;
+}
+
+.saved-locations-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.saved-locations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.location-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-item:hover {
+  border-color: #667eea;
+  background: #f8f9fa;
+}
+
+.location-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.location-item.active .location-text {
+  color: white;
+  font-weight: 600;
+}
+
+.location-text {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.delete-location-btn {
+  background: rgba(220, 53, 69, 0.1);
+  border: none;
+  color: #dc3545;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.delete-location-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.location-item.active .delete-location-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.location-item.active .delete-location-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .location-icon {
@@ -81,10 +204,12 @@ h1 {
   display: flex;
   gap: 12px;
   align-items: stretch;
+  flex-wrap: wrap;
 }
 
 .input-field {
   flex: 1;
+  min-width: 150px;
   padding: 12px 16px;
   border: 2px solid #dee2e6;
   border-radius: 10px;
@@ -103,7 +228,8 @@ h1 {
   color: #adb5bd;
 }
 
-#updateButton {
+#updateButton,
+#saveButton {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -120,17 +246,29 @@ h1 {
   white-space: nowrap;
 }
 
-#updateButton:hover {
+#updateButton:hover,
+#saveButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
-#updateButton:active {
+#updateButton:active,
+#saveButton:active {
   transform: translateY(0);
 }
 
-#updateButton svg {
+#updateButton svg,
+#saveButton svg {
   flex-shrink: 0;
+}
+
+#saveButton {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+#saveButton:hover {
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
 }
 
 /* Clock Container */
@@ -231,7 +369,8 @@ footer {
     flex-direction: column;
   }
 
-  #updateButton {
+  #updateButton,
+  #saveButton {
     width: 100%;
     justify-content: center;
   }

@@ -184,10 +184,11 @@ function SetHourText(){
         const distFromCenter = 120;
         const textX = distFromCenter * Math.cos((angle - 90) * (Math.PI / 180));
         const textY = distFromCenter * Math.sin((angle - 90) * (Math.PI / 180));
-      
+
         const hourNumber = document.createElementNS("http://www.w3.org/2000/svg", "text");
         hourNumber.setAttribute("x", textX);
         hourNumber.setAttribute("y", textY);
+        hourNumber.setAttribute("transform", `rotate(-90 ${textX} ${textY})`);
         hourNumber.setAttribute("class", "hour-number");
         hourNumber.textContent = hour.toString();
         hourNumbersGroup.appendChild(hourNumber);
@@ -221,15 +222,17 @@ function SetTempText(){
         const tempValue = weatherData.temp;
         tempText.innerHTML = `${Math.round(tempValue)}&deg;F`;
 
-        const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        const iconPositionX = textX - 15; // Adjust as needed
-        const iconPositionY = textY + 40; // Adjust as needed
+        // Position weather icon radially between temp text and hour numbers
+        const iconDistFromCenter = 100;
+        const iconX = iconDistFromCenter * Math.cos(centerAngle * (Math.PI / 180));
+        const iconY = iconDistFromCenter * Math.sin(centerAngle * (Math.PI / 180));
 
-        conditionIcon.setAttribute("x", iconPositionX+40); // Adjust position as needed
-        conditionIcon.setAttribute("y", iconPositionY); // Adjust position as needed
+        const conditionIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        conditionIcon.setAttribute("x", iconX - 12.5); // Center the 25px icon
+        conditionIcon.setAttribute("y", iconY - 12.5); // Center the 25px icon
         conditionIcon.setAttribute("class", "condition-icon");
-        conditionIcon.setAttribute("width", 25); // Adjust size as needed
-        conditionIcon.setAttribute("height", 25); // Adjust size as needed
+        conditionIcon.setAttribute("width", 25);
+        conditionIcon.setAttribute("height", 25);
         conditionIcon.setAttribute("href", 'https:' + weatherData.condition.icon);
 
 

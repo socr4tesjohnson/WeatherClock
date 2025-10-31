@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test WeatherClock Colors</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test-row { display: flex; align-items: center; margin: 10px 0; }
+        .color-box { width: 100px; height: 40px; margin-right: 20px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>WeatherClock Color Test</h1>
+    <div id="tests"></div>
+    
+    <script>
+        function getColor(temperature) {
+            const normalizedTemp = (temperature - 32) / 68 * 100;
+            const hue = (1 - normalizedTemp / 100) * 240;
+            const saturation = 100;
+            const lightness = 50;
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        }
+        
+        const temps = [32, 40, 50, 60, 70, 80, 90, 100];
+        const testsDiv = document.getElementById('tests');
+        
+        temps.forEach(temp => {
+            const color = getColor(temp);
+            const row = document.createElement('div');
+            row.className = 'test-row';
+            row.innerHTML = `
+                <div class="color-box" style="background-color: ${color}"></div>
+                <span><strong>${temp}°F:</strong> ${color}</span>
+            `;
+            testsDiv.appendChild(row);
+        });
+    </script>
+</body>
+</html>
